@@ -1,9 +1,10 @@
 import telebot
 from telebot import types
 
-
 API_TOKEN = '7621086514:AAFV1-iE6HQwnMKwlXMQAToRxtkt1KXdavY'
 bot = telebot.TeleBot(API_TOKEN)
+
+users_id = []
 
 
 # Обработчик команды /start
@@ -22,21 +23,39 @@ def send_welcome(message):
 
 
 # Обработчик текстовых сообщений
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(func=lambda message: message.chat.id)
 def handle_message(message):
     if message.text == "Помощь":
         bot.send_message(message.chat.id, "Я могу помочь вам с следующими командами:\n"
                                           "/start - Начать общение со мной\n"
                                           "/help - Получить список доступных команд")
     elif message.text == "Добавить получателя":
-        bot.send_message(message.chat.id, "Введите ID получателя")
+        mess = bot.send_message(message.chat.id, "Введите ID получателя")
+        bot.register_next_step_handler(mess, add_recipient)
     elif message.text == "Отправить сообщение":
-        bot.send_message(message.chat.id, "Введите сообщение")
+        mess = bot.send_message(message.chat.id, "Введите сообщение")
+        bot.register_next_step_handler(mess, send_message)
     else:
         bot.send_message(message.chat.id, f"Вы сказали: {message.text}")
+
+
+# Обработчик текстовых сообщений
+@bot.message_handler(content_types=["text"])
+def add_recipient(message):
+    text = message.text
+    users_id.append(text)
+    bot.send_message(message.chat.id, f'Получатель {text} успешно добавлен')
+
+
+def send_message(message):
+    text = message.text
+    for user_id in users_id:
+        bot.send_message(user_id, f'Вам пришло сообщение: {text}')
+    bot.send_message(message.chat.id, f"Сообщение '{text}' отправлено получателям.")
 
 
 # Запуск бота
 if __name__ == '__main__':
     print("Бот запущен...")
     bot.polling(none_stop=True)
+
