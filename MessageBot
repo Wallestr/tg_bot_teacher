@@ -1,0 +1,42 @@
+import telebot
+from telebot import types
+
+
+API_TOKEN = '7621086514:AAFV1-iE6HQwnMKwlXMQAToRxtkt1KXdavY'
+bot = telebot.TeleBot(API_TOKEN)
+
+
+# Обработчик команды /start
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # создаем клавиатуру с кнопками
+    button_help = types.KeyboardButton("Помощь")
+    button_add_user = types.KeyboardButton("Добавить получателя")
+    button_send_message = types.KeyboardButton("Отправить сообщение")
+    markup.add(button_help, button_add_user, button_send_message)
+
+    bot.send_message(message.chat.id,
+                     "Привет! Этот бот предоставляет удобные возможности для автоматизации рассылки сообщений. "
+                     "Выберите одну из функций:",
+                     reply_markup=markup)
+
+
+# Обработчик текстовых сообщений
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    if message.text == "Помощь":
+        bot.send_message(message.chat.id, "Я могу помочь вам с следующими командами:\n"
+                                          "/start - Начать общение со мной\n"
+                                          "/help - Получить список доступных команд")
+    elif message.text == "Добавить получателя":
+        bot.send_message(message.chat.id, "Введите ID получателя")
+    elif message.text == "Отправить сообщение":
+        bot.send_message(message.chat.id, "Введите сообщение")
+    else:
+        bot.send_message(message.chat.id, f"Вы сказали: {message.text}")
+
+
+# Запуск бота
+if __name__ == '__main__':
+    print("Бот запущен...")
+    bot.polling(none_stop=True)
